@@ -47,6 +47,10 @@ def create_app(data_dir: Path | None = None):
     @app.get('/api/{mode}/dashboard')
     def dashboard(mode: Mode):
         with closing(connect(path(mode))) as con:
+            # One read snapshot keeps status, accounting and diagnostics coherent
+            # when a webhook commits between these queries. Closing ends the
+            # transaction before FastAPI renders the response.
+            con.execute('BEGIN')
             def rows(query):
                 return [dict(row) for row in con.execute(query)]
             data = {

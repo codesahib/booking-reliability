@@ -1,12 +1,14 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 from itertools import permutations
+from types import SimpleNamespace
 import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
 
 from backend import improved
+from backend import main
 from backend.db import connect, transaction
 from backend.invariants import invariant_violations
 from backend.main import create_app
@@ -20,6 +22,53 @@ def payment(**changes):
 
 def snapshot(client):
     return client.get('/api/improved/dashboard').json()
+
+
+@pytest.mark.parametrize('mode', ['baseline', 'improved'])
+def test_dashboard_is_one_consistent_snapshot_during_payment(client, monkeypatch, mode):
+    db = client.app.state.data_dir / f'{mode}.sqlite3'
+    # WAL permits a writer to commit while a reader holds its snapshot. A second
+    # connection deterministically commits between reservation and ledger reads.
+    with closing(connect(db)) as con:
+        con.execute('PRAGMA journal_mode=WAL')
+    original_connect = main.connect
+    committed = []
+    closed_readers = []
+
+    def dashboard_connection(path):
+        con = original_connect(path)
+
+        def concurrent_payment(statement):
+            if statement == 'SELECT * FROM ledger ORDER BY id DESC' and not committed:
+                handler = main.baseline if mode == 'baseline' else improved
+                committed.append(handler.process(db, main.Event(**payment())))
+
+        con.set_trace_callback(concurrent_payment)
+
+        def close_reader():
+            con.close()
+            closed_readers.append(path)
+
+        return SimpleNamespace(execute=con.execute, close=close_reader)
+
+    monkeypatch.setattr(main, 'connect', dashboard_connection)
+    data = client.get(f'/api/{mode}/dashboard').json()
+    assert len(committed) == 1, 'The overlapping payment must actually commit'
+    assert data['reservations'][0]['status'] == 'pending'
+    assert data['ledger'] == []
+    assert data['deliveries'] == []
+    assert len(data['history']) == 3
+    assert data['violations'] == []
+    assert data['metrics']['invariant_violations'] == 0
+    if mode == 'improved':
+        assert data['provider_events'] == []
+        assert data['incidents'] == []
+    assert closed_readers == [db], 'Release the snapshot before response rendering'
+
+    latest = client.get(f'/api/{mode}/dashboard').json()
+    assert latest['reservations'][0]['status'] == 'paid'
+    assert len(latest['ledger']) == len(latest['deliveries']) == 1
+    assert latest['violations'] == []
 
 
 @pytest.mark.parametrize('scenario', fixtures(), ids=lambda scenario: scenario['id'])
