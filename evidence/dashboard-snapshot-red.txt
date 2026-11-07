@@ -1,0 +1,22 @@
+Command (before the dashboard fix):
+.venv/Scripts/python.exe -m pytest -q backend/tests/test_reliability.py -k dashboard_is_one_consistent_snapshot_during_payment
+
+Both parametrized cases failed on the same assertion:
+test_dashboard_is_one_consistent_snapshot_during_payment[baseline]
+test_dashboard_is_one_consistent_snapshot_during_payment[improved]
+
+assert data['reservations'][0]['status'] == 'pending'  # passed
+assert data['ledger'] == []  # failed
+E AssertionError: assert [{'amount_cents': 9000, ...}] == []
+
+Observed pytest summary:
+2 failed, 30 deselected, 1 warning in 0.29s
+
+This is an excerpt of actual test output, not a production incident or a payment
+write failure. A second connection committed a synthetic payment between the
+dashboard's reservation and ledger SELECTs. The test alone enables WAL on its
+disposable SQLite database so the same overlap can run after a read transaction
+is added. The original default DELETE journal also releases its read lock between
+these independent SELECTs and permits the inconsistent interleaving. With an
+explicit read transaction, DELETE delays writer commit until the reader closes;
+WAL allows that commit while retaining the reader's older coherent snapshot.

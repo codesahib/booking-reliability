@@ -40,6 +40,8 @@ The API binds to localhost and has no authentication, authorization, CSRF protec
 
 The full dashboard returns unpaginated synthetic records and refreshes after actions/version changes. It does not stream remote updates. Large-volume dashboards, pagination, retention policy, provider namespaces, partial refunds, multiple attempts, and manual incident workflow would require additional domain design and tests.
 
+Dashboard queries share one explicit read transaction, so reservation state, accounting, inbox and diagnostic rows describe one database snapshot. The connection closes before response rendering. With the default DELETE journal, a reader can briefly delay writer commit; WAL would permit concurrent commit while preserving the reader's older snapshot. WAL is enabled only by the deterministic overlap regression, not by this application change. Keep snapshot reads short; this is not a throughput measurement.
+
 ## Maintainable handoff
 
 Start with `backend/improved.py`, `backend/db.py`, `fixtures/replays.json`, and `backend/tests/test_reliability.py`. Keep the baseline handler unchanged as a comparison artifact. Add a fixture and a regression before broadening state semantics. Run the [verification script](../scripts/verify.sh) and review [the runbook](runbook.md).

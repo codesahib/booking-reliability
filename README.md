@@ -19,7 +19,7 @@ Seven replay scenarios, 15 deliveries per version, fresh seeded SQLite databases
 
 The duplicate-only scenario contributes two excess charge rows; conflicting reuse of an event ID contributes the third duplicate-identity row. [Methodology and limitations](docs/03-results.md), [raw replay evidence](evidence/comparison.json), [actual check outputs](evidence/verification.json).
 
-Backend: **33 passed, 6 expected baseline failures**. Browser smoke: **3 passed**. Typecheck and build passed. These results do not measure human debugging speed or production reliability.
+Backend: **35 passed, 6 expected baseline failures**. Browser smoke: **3 passed**. Typecheck and build passed. The [independent review](docs/06-independent-review.md) fixed an inconsistent dashboard snapshot during a concurrent payment. These results do not measure human debugging speed or production reliability.
 
 ## Quickstart — Ubuntu / WSL
 
