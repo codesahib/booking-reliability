@@ -9,35 +9,13 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from .main import create_app
+from .invariants import invariant_violations
 
 FIXTURE_PATH = Path(__file__).resolve().parents[1] / 'fixtures' / 'replays.json'
 
 
 def fixtures():
     return json.loads(FIXTURE_PATH.read_text(encoding='utf-8'))
-
-
-def invariant_violations(data):
-    issues = []
-    for reservation in data['reservations']:
-        rid, amount = reservation['id'], reservation['amount_cents']
-        ledger = [row for row in data['ledger'] if row['reservation_id'] == rid]
-        charges = [row for row in ledger if row['kind'] == 'charge']
-        refunds = [row for row in ledger if row['kind'] == 'refund']
-        checks = {
-            'multiple_charges': len(charges) > 1,
-            'multiple_refunds': len(refunds) > 1,
-            'repeated_event_in_ledger': len({row['event_id'] for row in ledger}) < len(ledger),
-            'incorrect_amount': any(row['amount_cents'] != (amount if row['kind'] == 'charge' else -amount) for row in ledger),
-            'refund_without_charge': bool(refunds) and not charges,
-            'balance_outside_bounds': not 0 <= sum(row['amount_cents'] for row in ledger) <= amount,
-            'status_ledger_mismatch': (
-                (bool(refunds) and reservation['status'] != 'refunded') or
-                (bool(charges) and not refunds and reservation['status'] != 'paid') or
-                (not ledger and reservation['status'] in ('paid', 'refunded'))),
-        }
-        issues.extend({'reservation_id': rid, 'code': code} for code, failed in checks.items() if failed)
-    return issues
 
 
 def scenario_assertions(scenario, data):
@@ -99,7 +77,7 @@ def evaluate(modes):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--modes', nargs='+', default=['baseline'])
+    parser.add_argument('--modes', nargs='+', choices=['baseline', 'improved'], default=['baseline', 'improved'])
     parser.add_argument('--output', type=Path, default=Path('evidence/diagnosis.json'))
     args = parser.parse_args()
     result = evaluate(args.modes)
@@ -108,3 +86,5 @@ if __name__ == '__main__':
     for mode, stats in result['modes'].items():
         print(mode, json.dumps({key: value for key, value in stats.items() if key != 'scenarios'}))
     print(f'Full evidence: {args.output}')
+    if 'improved' in result['modes'] and result['modes']['improved']['failed_assertions']:
+        raise SystemExit('Improved replay failed its assertions; inspect the evidence')

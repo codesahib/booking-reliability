@@ -1,17 +1,22 @@
 import os
+import json
+import logging
 import sqlite3
+from collections import Counter
 from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
-from . import baseline
+from . import baseline, improved
 from .db import append_log, connect, initialize, transaction
+from .invariants import invariant_violations
 from .models import Booking, Event
 
-Mode = Literal['baseline']
+Mode = Literal['baseline', 'improved']
 DEFAULT_DATA = Path(__file__).resolve().parents[1] / 'data'
 
 
@@ -21,6 +26,7 @@ def create_app(data_dir: Path | None = None):
     @asynccontextmanager
     async def lifespan(app):
         initialize(root / 'baseline.sqlite3')
+        initialize(root / 'improved.sqlite3', improved=True)
         yield
 
     app = FastAPI(title='Campground Reliability Lab', lifespan=lifespan)
@@ -33,19 +39,36 @@ def create_app(data_dir: Path | None = None):
     def health():
         return {'status': 'ok', 'payments': 'simulated'}
 
+    @app.get('/api/fixtures')
+    def replay_fixtures():
+        source = Path(__file__).resolve().parents[1] / 'fixtures' / 'replays.json'
+        return json.loads(source.read_text(encoding='utf-8'))
+
     @app.get('/api/{mode}/dashboard')
     def dashboard(mode: Mode):
         with closing(connect(path(mode))) as con:
             def rows(query):
                 return [dict(row) for row in con.execute(query)]
-            return {
+            data = {
                 'mode': mode,
                 'campsites': rows('SELECT * FROM campsites ORDER BY id'),
                 'reservations': rows('SELECT r.*, c.name AS campsite_name FROM reservations r JOIN campsites c ON c.id=r.campsite_id ORDER BY r.id'),
                 'ledger': rows('SELECT * FROM ledger ORDER BY id DESC'),
                 'deliveries': rows('SELECT * FROM deliveries ORDER BY id DESC'),
                 'history': rows('SELECT * FROM history ORDER BY id DESC'),
+                'incidents': rows('SELECT * FROM incidents ORDER BY id DESC') if mode == 'improved' else [],
+                'provider_events': rows('SELECT event_id,reservation_id,event_type,outcome FROM provider_events ORDER BY rowid DESC') if mode == 'improved' else [],
             }
+            counts = Counter(row['event_id'] for row in data['ledger'])
+            data['violations'] = invariant_violations(data)
+            data['metrics'] = {
+                'duplicate_ledger_entries': sum(max(0, count - 1) for count in counts.values()),
+                'invariant_violations': len(data['violations']),
+                'duplicates_suppressed': sum(row['outcome'] == 'duplicate' for row in data['deliveries']),
+                'open_alerts': sum(not row['resolved'] and row['severity'] != 'info' for row in data['incidents']),
+                'deferred_events': sum(row['outcome'] == 'deferred' for row in data['provider_events']),
+            }
+            return data
 
     @app.post('/api/{mode}/bookings', status_code=201)
     def book(mode: Mode, booking: Booking):
@@ -74,13 +97,20 @@ def create_app(data_dir: Path | None = None):
     @app.post('/api/{mode}/webhooks')
     def webhook(mode: Mode, event: Event):
         try:
-            result = baseline.process(path(mode), event)
+            handler = baseline if mode == 'baseline' else improved
+            result = handler.process(path(mode), event)
         except LookupError as exc:
             raise HTTPException(404, str(exc)) from exc
         except sqlite3.OperationalError as exc:
             raise HTTPException(503, 'Local database busy; retry this event') from exc
-        append_log(root, mode, result)
-        return result
+        # Diagnostic DB rows are authoritative and transactional. An optional file
+        # mirror must not turn a committed webhook into a retryable HTTP failure.
+        try:
+            append_log(root, mode, {'event_type': event.type, **result})
+        except OSError:
+            logging.getLogger('booking').exception('JSON log mirror unavailable; delivery_id=%s event_id=%s reservation_id=%s',
+                                                    result['delivery_id'], event.event_id, event.reservation_id)
+        return JSONResponse(result, status_code=result.get('http_status', 200))
 
     return app
 

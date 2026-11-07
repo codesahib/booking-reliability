@@ -28,6 +28,24 @@ CREATE TABLE IF NOT EXISTS history (
  created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
 """
 
+IMPROVED_SCHEMA = """
+CREATE TABLE IF NOT EXISTS provider_events (
+ event_id TEXT PRIMARY KEY, reservation_id TEXT NOT NULL, event_type TEXT NOT NULL,
+ amount_cents INTEGER NOT NULL, payload TEXT NOT NULL, outcome TEXT NOT NULL);
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_event_unique ON ledger(event_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ledger_business_effect_unique ON ledger(reservation_id,kind);
+CREATE TABLE IF NOT EXISTS incidents (
+ id INTEGER PRIMARY KEY, reservation_id TEXT NOT NULL, event_id TEXT NOT NULL,
+ delivery_id INTEGER NOT NULL REFERENCES deliveries(id),
+ severity TEXT NOT NULL CHECK(severity IN ('info','warning','error')),
+ code TEXT NOT NULL, detail TEXT NOT NULL,
+ resolved INTEGER NOT NULL DEFAULT 0,
+ created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+ resolved_at TEXT);
+CREATE INDEX IF NOT EXISTS incidents_reservation ON incidents(reservation_id,event_id);
+CREATE INDEX IF NOT EXISTS deliveries_event ON deliveries(event_id,reservation_id);
+"""
+
 
 def connect(path: Path):
     con = sqlite3.connect(path, timeout=10)
@@ -50,10 +68,12 @@ def transaction(path: Path):
         con.close()
 
 
-def initialize(path: Path):
+def initialize(path: Path, *, improved=False):
     path.parent.mkdir(parents=True, exist_ok=True)
     with closing(connect(path)) as con, con:
         con.executescript(SCHEMA)
+        if improved:
+            con.executescript(IMPROVED_SCHEMA)
         if not con.execute('SELECT 1 FROM campsites').fetchone():
             con.executemany('INSERT INTO campsites VALUES (?,?,?,?)', [
                 ('pine-01', 'Pine Hollow', 'Forest · electric', 4500),
