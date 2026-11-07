@@ -1,0 +1,7 @@
+{
+  "baseline_commit": "f3883f3ff287e9f47b16655b4b44b8bde7d5ce5b",
+  "runtime_source_commit": "ca3057d6a9fed7d25432b911fd59768fe142b5ab",
+  "baseline_handler_matches_tag": true,
+  "baseline_handler_sha256": "24a371dcd471860f64aebc9c17aba52b97bf2412bf1301177442c317c0dadb4b",
+  "fixture_sha256": "60369bc0a3cf08d61e18083217bf7007b30f66c8ca23316d84c025e0b1137042"
+}

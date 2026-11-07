@@ -1,0 +1,87 @@
+{
+  "executed_at_utc": "2026-11-07T04:12:39.562956+00:00",
+  "runtime_source_commit": "ca3057d6a9fed7d25432b911fd59768fe142b5ab",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python_version": "3.13.14",
+  "node_version": "v24.22.0",
+  "browser_channel": "chrome",
+  "checks": [
+    {
+      "name": "backend-tests",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "exit_code": 0,
+      "output": "evidence/backend-tests.txt"
+    },
+    {
+      "name": "frontend-typecheck",
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "output": "evidence/frontend-typecheck.txt"
+    },
+    {
+      "name": "frontend-build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "output": "evidence/frontend-build.txt"
+    },
+    {
+      "name": "replay-comparison",
+      "command": [
+        "python",
+        "-m",
+        "backend.replay",
+        "--modes",
+        "baseline",
+        "improved",
+        "--output",
+        "evidence/comparison.json"
+      ],
+      "exit_code": 0,
+      "output": "evidence/replay-comparison.txt"
+    },
+    {
+      "name": "python-dependencies",
+      "command": [
+        "python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "exit_code": 0,
+      "output": "evidence/python-dependencies.txt"
+    },
+    {
+      "name": "npm-audit",
+      "command": [
+        "npm",
+        "audit",
+        "--audit-level=high"
+      ],
+      "exit_code": 0,
+      "output": "evidence/npm-audit.txt"
+    },
+    {
+      "name": "ui-smoke",
+      "command": [
+        "npm",
+        "run",
+        "test:ui"
+      ],
+      "exit_code": 0,
+      "output": "evidence/ui-smoke.txt"
+    }
+  ]
+}

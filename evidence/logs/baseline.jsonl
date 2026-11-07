@@ -1,0 +1,4 @@
+{"delivery_id": 1, "detail": "Provider event applied", "event_id": "evt-authorize", "event_type": "authorized", "mode": "baseline", "outcome": "applied", "reservation_id": "res-1001", "status": "authorized"}
+{"delivery_id": 2, "detail": "Provider event applied", "event_id": "evt-payment", "event_type": "payment_succeeded", "mode": "baseline", "outcome": "applied", "reservation_id": "res-1001", "status": "paid"}
+{"delivery_id": 3, "detail": "Provider event applied", "event_id": "evt-payment", "event_type": "payment_succeeded", "mode": "baseline", "outcome": "applied", "reservation_id": "res-1001", "status": "paid"}
+{"delivery_id": 4, "detail": "Provider event applied", "event_id": "evt-payment", "event_type": "payment_succeeded", "mode": "baseline", "outcome": "applied", "reservation_id": "res-1001", "status": "paid"}

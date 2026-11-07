@@ -1,0 +1,3 @@
+baseline {"scenario_count": 7, "delivery_count": 15, "assertion_count": 31, "failed_scenarios": 6, "failed_assertions": 15, "duplicate_ledger_entries": 3, "invariant_violations": 7}
+improved {"scenario_count": 7, "delivery_count": 15, "assertion_count": 31, "failed_scenarios": 0, "failed_assertions": 0, "duplicate_ledger_entries": 0, "invariant_violations": 0}
+Full evidence: evidence\comparison.json
