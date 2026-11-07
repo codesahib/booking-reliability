@@ -1,0 +1,83 @@
+{
+  "task": "BR-002",
+  "dispatch": "F1107-c1d3cf",
+  "source_commit": "ee4ef7c8a9f5768db2ce2606c95b732591f2399a",
+  "baseline_tag": "f3883f3ff287e9f47b16655b4b44b8bde7d5ce5b",
+  "executed_at": "2026-11-07T19:09:29.304972+00:00",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.14",
+  "checks": [
+    {
+      "name": "backend-full",
+      "command": [
+        "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "-o",
+        "cache_dir=.orchestrator/BR-002/cache",
+        "--basetemp=.orchestrator/BR-002/full-tmp"
+      ],
+      "cwd": "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability",
+      "exit_code": 0,
+      "output": "evidence/br-002/backend-full.txt"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "cwd": "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability",
+      "exit_code": 0,
+      "output": "evidence/br-002/typecheck.txt"
+    },
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "node_modules/vite/bin/vite.js",
+        "build",
+        "--config",
+        ".orchestrator/BR-002/vite.config.ts",
+        "--outDir",
+        ".orchestrator/BR-002/dist"
+      ],
+      "cwd": "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability",
+      "exit_code": 0,
+      "output": "evidence/br-002/build.txt"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        ".orchestrator/BR-002/playwright.config.ts"
+      ],
+      "cwd": "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability",
+      "exit_code": 0,
+      "output": "evidence/br-002/browser.txt"
+    },
+    {
+      "name": "benchmark",
+      "command": [
+        "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability\\.venv\\Scripts\\python.exe",
+        "-m",
+        "backend.replay",
+        "--modes",
+        "baseline",
+        "improved",
+        "--output",
+        "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability\\evidence\\br-002\\comparison.json"
+      ],
+      "cwd": "C:\\Users\\gursa\\projects\\beacon-labs\\booking-reliability\\.orchestrator\\BR-002\\cli-sandbox",
+      "exit_code": 0,
+      "output": "evidence/br-002/benchmark.txt"
+    }
+  ]
+}

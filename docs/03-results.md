@@ -4,7 +4,15 @@ The operational change is payment-event identity plus a safe state machine and u
 
 ## Method and provenance
 
-Latest execution: **2026-11-07 04:55 UTC** (November 6 in America/Toronto), Windows 11, Python 3.13.14, Node 24.22.0, installed Chrome. [Verification metadata](../evidence/verification.json) records source commit `b88c89a`, commands, exit codes, and output files. The original formal execution at 04:12 UTC tested `ca3057d` (33 passes); its [provenance](../evidence/provenance.json) is retained. Linux instructions are supplied but were not run on a Linux host.
+### BR-002 targeted follow-up
+
+The [follow-up evidence](../evidence/br-002/README.md) records source `ee4ef7c`: **46 backend passes, 6 exact expected baseline failures**, **3 browser passes**, passing typecheck/build, and a strengthened benchmark. All 11 new regressions were first run against the prior implementation and failed (exit 1); all passed after the targeted changes (exit 0). This includes a real local writer-lock test and synthetic exception/mutation injection, not a claim of an actual disk failure.
+
+The seven scenarios, 15 business deliveries, original fixture bytes, and **legacy 31-check comparison remain unchanged**: baseline 15/31 failures, 3 duplicate-identity rows and 7 final invariant violations; improved 0/31 failures, 0 duplicate rows and 0 violations. A separate `protocol` report adds **38 checks** per mode: status and outcome for 15 deliveries (30), plus correlation and severity for four required incident records (8). Baseline fails **17/38**, improved fails **0/38**. These 38 are not silently counted as the original 31; neither denominator represents independent statistical trials.
+
+The separate `fixtures/protocol-expectations.json` defines desired acknowledgement/outcome behavior for both implementations. Mutations returning 409 for valid ignored authorization, a wrong outcome, a wrong incident severity, or a mislinked incident now fail the protocol oracle while leaving legacy accounting checks green. Historical files below are retained unchanged; current artifacts live under `evidence/br-002/`.
+
+Previous execution: **2026-11-07 04:55 UTC** (November 6 in America/Toronto), Windows 11, Python 3.13.14, Node 24.22.0, installed Chrome. [Verification metadata](../evidence/verification.json) records source commit `b88c89a`, commands, exit codes, and output files. The original formal execution at 04:12 UTC tested `ca3057d` (33 passes); its [provenance](../evidence/provenance.json) is retained. Linux instructions are supplied but were not run on a Linux host.
 
 `python -m backend.replay --modes baseline improved --output evidence/comparison.json` sends the exact same seven checked-in fixtures to both real FastAPI endpoint implementations using TestClient. Every mode/scenario receives a fresh temporary SQLite database seeded with the same three campsites and pending bookings. There are **15 deliveries and 31 assertions per mode**, not a load test or statistical sample of production traffic. No network gateway, wall-clock sleeps, or random failure generation is involved.
 
@@ -34,7 +42,7 @@ Definitions: duplicate rows = excess entries for each event ID within a scenario
 
 ## Checks actually executed
 
-The latest complete verification used the existing Windows virtualenv with `PLAYWRIGHT_CHANNEL=chrome` and `python scripts/verify.py --ui`; it returned success. Outputs are checked in:
+The previous complete verification used the existing Windows virtualenv with `PLAYWRIGHT_CHANNEL=chrome` and `python scripts/verify.py --ui`; it returned success. Those historical outputs are checked in (current follow-up above):
 
 | Check | Observed result |
 |---|---|

@@ -17,6 +17,8 @@ curl -sS http://127.0.0.1:8003/api/improved/dashboard
 
 SQLite audit records are authoritative. If the file mirror is missing, check server stderr and query the dashboard. A missing log file is not evidence of a missing payment effect.
 
+For storage failures, use the server's `booking` exception log, correlated by mode/event/reservation. BUSY/LOCKED returns `503`: retry the same identity after contention clears. A non-lock storage failure returns safe `500` guidance: inspect the actual cause in stderr and restore storage before deciding to retry. The client response deliberately omits paths and raw exceptions. No database incident can be guaranteed while storage is unavailable; the exception log is the fallback. Regression injection of I/O errors is not an actual host disk failure.
+
 ## Reproduce
 
 Preserve current evidence before reset. The CLI harness does not mutate the ordinary demo databases:
@@ -26,6 +28,8 @@ source .venv/bin/activate
 python -m backend.replay --modes baseline improved --output evidence/comparison.json
 python -m pytest -q backend/tests/test_reliability.py
 ```
+
+Replay requires an explicit `--output`; a bare invocation returns usage exit 2 without touching historical diagnosis. Use `--output data/reports/comparison.json` for a new investigation rather than replacing committed evidence. Check both the **legacy 31 accounting assertions** and the **separate 38 protocol assertions**. The latter verify acknowledgements, outcomes, and incident severity/delivery linkage. See `evidence/br-002/` for the follow-up's preserved red and green outputs.
 
 For manual reproduction, stop both servers, run `bash scripts/reset-demo.sh`, restart them as documented in README, then use the fixture selector. An early refund fixture should leave no temporary negative accounting; after its charge, status is refunded with one charge and one refund.
 

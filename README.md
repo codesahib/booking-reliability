@@ -8,7 +8,7 @@ This is an **independent, synthetic, portfolio-company-inspired demonstration**.
 
 ## Verified outcome
 
-Seven replay scenarios, 15 deliveries per version, fresh seeded SQLite databases, 31 assertions per version:
+Seven replay scenarios, 15 deliveries per version, fresh seeded SQLite databases, 31 legacy accounting assertions per version:
 
 | Measure | Original | Hardened |
 |---|---:|---:|
@@ -19,7 +19,9 @@ Seven replay scenarios, 15 deliveries per version, fresh seeded SQLite databases
 
 The duplicate-only scenario contributes two excess charge rows; conflicting reuse of an event ID contributes the third duplicate-identity row. [Methodology and limitations](docs/03-results.md), [raw replay evidence](evidence/comparison.json), [actual check outputs](evidence/verification.json).
 
-Backend: **35 passed, 6 expected baseline failures**. Browser smoke: **3 passed**. Typecheck and build passed. The [independent review](docs/06-independent-review.md) fixed an inconsistent dashboard snapshot during a concurrent payment. These results do not measure human debugging speed or production reliability.
+The follow-up adds **38 separate protocol checks**: baseline fails 17/38; improved passes 38/38. These check HTTP status/outcome per delivery and incident linkage/severity; they are not included in the legacy 31 denominator. [Current evidence and red/green regressions](evidence/br-002/README.md) preserve the earlier results unchanged.
+
+Current backend: **46 passed, 6 expected baseline failures**. Browser smoke: **3 passed**. Typecheck and build passed. The [independent review](docs/06-independent-review.md) fixed an inconsistent dashboard snapshot during a concurrent payment. These results do not measure human debugging speed or production reliability.
 
 ## Quickstart — Ubuntu / WSL
 
@@ -84,7 +86,7 @@ bash scripts/verify.sh --ui
 bash scripts/verify.sh
 ```
 
-`scripts/verify.py` captures actual exit codes and outputs in `evidence/verification.json` and `evidence/*.txt`, and returns nonzero if any check fails. Its npm audit check requires registry access. Runtime, tests other than browser installation/audit, and replay work without external services after dependencies are installed. The replay command returns nonzero if improved assertions fail; baseline shortcomings are reported as comparison data.
+`scripts/verify.py` captures actual exit codes and outputs in `evidence/verification.json` and `evidence/*.txt`, and returns nonzero if any check fails. Its npm audit check requires registry access. Runtime, tests other than browser installation/audit, and replay work without external services after dependencies are installed. The replay command returns nonzero if improved legacy or protocol assertions fail; baseline shortcomings are reported as comparison data. `--output` is required: a bare replay command exits with usage code 2 before processing, protecting historical diagnosis evidence. For a new report without replacing recorded evidence, use `--output data/reports/comparison.json`.
 
 If installed Chrome is available instead of managed Chromium:
 
@@ -135,6 +137,8 @@ curl -sS -X POST http://127.0.0.1:8003/api/improved/webhooks \
 ```
 
 Supported types: `authorized`, `payment_succeeded`, `refund_succeeded`, `refund_failed`. Only full amounts are supported. Improved business rejections return `409` with a retained incident; valid retries return `200` without additional effects. Malformed requests return `422`; a busy webhook database returns `503` so the same event can be retried. An identical retry of an already rejected event remains `409`.
+
+SQLite BUSY/LOCKED (including extended codes) produces retryable `503`. Other storage errors return a generic `500` directing investigation before retry; client messages do not reveal internal paths or exception text. The application logs the actual exception to server stderr with mode, event ID and reservation ID, even when the database cannot persist an incident. Fault-injection tests are simulated failures, not evidence of a host disk incident.
 
 ## Code and case-study map
 

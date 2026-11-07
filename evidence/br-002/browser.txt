@@ -1,0 +1,19 @@
+
+Running 3 tests using 1 worker
+
+  ok 1 .orchestrator\BR-002\e2e\smoke.spec.ts:5:1 › identical retries expose baseline accounting and are suppressed after the fix (1.4s)
+  ok 2 .orchestrator\BR-002\e2e\smoke.spec.ts:64:1 › an early refund is deferred, then reconciled when its charge arrives (568ms)
+  ok 3 .orchestrator\BR-002\e2e\smoke.spec.ts:98:1 › booking confirmation, idempotent resubmission, and overlap error work on mobile (609ms)
+
+  3 passed (5.0s)
+[2m[WebServer] [22mINFO:     Started server process [26188]
+[2m[WebServer] [22mINFO:     Waiting for application startup.
+[2m[WebServer] [22mINFO:     Application startup complete.
+[2m[WebServer] [22mINFO:     Uvicorn running on http://127.0.0.1:18004 (Press CTRL+C to quit)
+[2m[WebServer] [22m(node:6468) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:40556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[BABEL] Note: The code generator has deoptimised the styling of C:\Users\gursa\projects\beacon-labs\booking-reliability\.orchestrator\BR-002\vite-cache\deps\react-dom_client.js?v=4900ba46 as it exceeds the max of 500KB.
