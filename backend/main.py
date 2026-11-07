@@ -106,7 +106,18 @@ def create_app(data_dir: Path | None = None):
         except LookupError as exc:
             raise HTTPException(404, str(exc)) from exc
         except sqlite3.OperationalError as exc:
-            raise HTTPException(503, 'Local database busy; retry this event') from exc
+            code = getattr(exc, 'sqlite_errorcode', None)
+            # Extended SQLite result codes retain their primary code in the
+            # low byte. Never infer contention from exception text/paths.
+            contention = code is not None and (code & 0xff) in (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
+            logging.getLogger('booking').exception(
+                'Webhook storage failure mode=%s event_id=%s reservation_id=%s sqlite_code=%s',
+                mode, event.event_id, event.reservation_id, code,
+                extra={'mode': mode, 'event_id': event.event_id,
+                       'reservation_id': event.reservation_id, 'sqlite_code': code})
+            if contention:
+                raise HTTPException(503, 'Local database busy; retry this event') from exc
+            raise HTTPException(500, 'Local storage unavailable; inspect server diagnostics before retrying') from exc
         # Diagnostic DB rows are authoritative and transactional. An optional file
         # mirror must not turn a committed webhook into a retryable HTTP failure.
         try:

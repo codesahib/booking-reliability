@@ -12,7 +12,7 @@ from backend import main
 from backend.db import connect, transaction
 from backend.invariants import invariant_violations
 from backend.main import create_app
-from backend.replay import fixtures, scenario_assertions
+from backend.replay import fixtures, scenario_assertions, protocol_assertions
 
 
 def payment(**changes):
@@ -73,12 +73,15 @@ def test_dashboard_is_one_consistent_snapshot_during_payment(client, monkeypatch
 
 @pytest.mark.parametrize('scenario', fixtures(), ids=lambda scenario: scenario['id'])
 def test_identical_replay_fixtures_pass(client, scenario):
+    responses = []
     for event in scenario['events']:
         response = client.post('/api/improved/webhooks', json=event)
-        assert response.status_code in (200, 409)
+        responses.append(response)
         assert not invariant_violations(snapshot(client)), 'Every delivery prefix must remain safe'
     checks = scenario_assertions(scenario, snapshot(client))
     assert all(checks.values()), checks
+    protocol = protocol_assertions(scenario, responses, snapshot(client))
+    assert all(protocol.values()), protocol
 
 
 @pytest.mark.parametrize('order', list(permutations(['authorized', 'payment_succeeded', 'refund_succeeded'])))

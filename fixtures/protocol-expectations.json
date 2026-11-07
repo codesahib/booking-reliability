@@ -1,0 +1,31 @@
+{
+  "ordinary-payment": [
+    {"status": 200, "outcome": "applied"},
+    {"status": 200, "outcome": "applied"}
+  ],
+  "duplicate-delivery": [
+    {"status": 200, "outcome": "applied"},
+    {"status": 200, "outcome": "applied"},
+    {"status": 200, "outcome": "duplicate"},
+    {"status": 200, "outcome": "duplicate"}
+  ],
+  "late-authorization": [
+    {"status": 200, "outcome": "applied"},
+    {"status": 200, "outcome": "ignored"}
+  ],
+  "early-refund": [
+    {"status": 200, "outcome": "deferred", "incident": {"code": "refund_deferred", "severity": "warning"}},
+    {"status": 200, "outcome": "applied"}
+  ],
+  "failed-refund": [
+    {"status": 200, "outcome": "applied"},
+    {"status": 200, "outcome": "failed", "incident": {"code": "refund_failed", "severity": "error"}}
+  ],
+  "wrong-amount": [
+    {"status": 409, "outcome": "rejected", "incident": {"code": "amount_mismatch", "severity": "error"}}
+  ],
+  "event-id-conflict": [
+    {"status": 200, "outcome": "applied"},
+    {"status": 409, "outcome": "rejected", "incident": {"code": "event_id_conflict", "severity": "error"}}
+  ]
+}
