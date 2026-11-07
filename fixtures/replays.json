@@ -1,0 +1,59 @@
+[
+  {
+    "id": "ordinary-payment", "label": "Ordinary payment", "expected_status": "paid",
+    "expected_charges": 1, "expected_refunds": 0,
+    "events": [
+      {"event_id":"evt-authorize","reservation_id":"res-1001","type":"authorized","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000}
+    ]
+  },
+  {
+    "id": "duplicate-delivery", "label": "Success + two identical retries", "expected_status": "paid",
+    "expected_charges": 1, "expected_refunds": 0,
+    "events": [
+      {"event_id":"evt-authorize","reservation_id":"res-1001","type":"authorized","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000}
+    ]
+  },
+  {
+    "id": "late-authorization", "label": "Authorization arrives after payment", "expected_status": "paid",
+    "expected_charges": 1, "expected_refunds": 0,
+    "events": [
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000},
+      {"event_id":"evt-authorize","reservation_id":"res-1001","type":"authorized","amount_cents":9000}
+    ]
+  },
+  {
+    "id": "early-refund", "label": "Refund arrives before charge", "expected_status": "refunded",
+    "expected_charges": 1, "expected_refunds": 1,
+    "events": [
+      {"event_id":"evt-refund","reservation_id":"res-1001","type":"refund_succeeded","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000}
+    ]
+  },
+  {
+    "id": "failed-refund", "label": "Provider reports refund failure", "expected_status": "paid",
+    "expected_charges": 1, "expected_refunds": 0, "expected_incident": "refund_failed",
+    "events": [
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000},
+      {"event_id":"evt-refund-failure","reservation_id":"res-1001","type":"refund_failed","amount_cents":9000}
+    ]
+  },
+  {
+    "id": "wrong-amount", "label": "Payment total does not match booking", "expected_status": "pending",
+    "expected_charges": 0, "expected_refunds": 0, "expected_incident": "amount_mismatch",
+    "events": [
+      {"event_id":"evt-wrong-amount","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":4500}
+    ]
+  },
+  {
+    "id": "event-id-conflict", "label": "Same event ID, different payload", "expected_status": "paid",
+    "expected_charges": 1, "expected_refunds": 0, "expected_incident": "event_id_conflict",
+    "events": [
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"payment_succeeded","amount_cents":9000},
+      {"event_id":"evt-payment","reservation_id":"res-1001","type":"refund_succeeded","amount_cents":9000}
+    ]
+  }
+]

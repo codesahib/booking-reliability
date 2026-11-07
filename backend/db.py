@@ -1,7 +1,7 @@
 """Small, inspectable SQLite store. All amounts are fictional integer cents."""
 import json
 import sqlite3
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 SCHEMA = """
@@ -52,7 +52,7 @@ def transaction(path: Path):
 
 def initialize(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
-    with connect(path) as con:
+    with closing(connect(path)) as con, con:
         con.executescript(SCHEMA)
         if not con.execute('SELECT 1 FROM campsites').fetchone():
             con.executemany('INSERT INTO campsites VALUES (?,?,?,?)', [

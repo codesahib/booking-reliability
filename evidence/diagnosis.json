@@ -1,0 +1,380 @@
+{
+  "fixture_sha256": "60369bc0a3cf08d61e18083217bf7007b30f66c8ca23316d84c025e0b1137042",
+  "method": "Fresh seeded SQLite database per mode per scenario; in-process HTTP TestClient; final-state assertions.",
+  "modes": {
+    "baseline": {
+      "scenario_count": 7,
+      "delivery_count": 15,
+      "assertion_count": 31,
+      "failed_scenarios": 6,
+      "failed_assertions": 15,
+      "duplicate_ledger_entries": 3,
+      "invariant_violations": 7,
+      "scenarios": [
+        {
+          "id": "ordinary-payment",
+          "deliveries": 2,
+          "http_statuses": [
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 1,
+          "duplicate_ledger_entries": 0,
+          "invariant_violations": [],
+          "assertions": {
+            "final_status": true,
+            "charge_count": true,
+            "refund_count": true,
+            "invariants": true
+          },
+          "failed_assertions": 0,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.783Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-authorize",
+              "event_type": "authorized",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.778Z"
+            }
+          ]
+        },
+        {
+          "id": "duplicate-delivery",
+          "deliveries": 4,
+          "http_statuses": [
+            200,
+            200,
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied",
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 3,
+          "duplicate_ledger_entries": 2,
+          "invariant_violations": [
+            {
+              "reservation_id": "res-1001",
+              "code": "multiple_charges"
+            },
+            {
+              "reservation_id": "res-1001",
+              "code": "repeated_event_in_ledger"
+            },
+            {
+              "reservation_id": "res-1001",
+              "code": "balance_outside_bounds"
+            }
+          ],
+          "assertions": {
+            "final_status": true,
+            "charge_count": false,
+            "refund_count": true,
+            "invariants": false
+          },
+          "failed_assertions": 2,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 4,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.823Z"
+            },
+            {
+              "id": 3,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.818Z"
+            },
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.813Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-authorize",
+              "event_type": "authorized",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.809Z"
+            }
+          ]
+        },
+        {
+          "id": "late-authorization",
+          "deliveries": 2,
+          "http_statuses": [
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 1,
+          "duplicate_ledger_entries": 0,
+          "invariant_violations": [
+            {
+              "reservation_id": "res-1001",
+              "code": "status_ledger_mismatch"
+            }
+          ],
+          "assertions": {
+            "final_status": false,
+            "charge_count": true,
+            "refund_count": true,
+            "invariants": false
+          },
+          "failed_assertions": 2,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-authorize",
+              "event_type": "authorized",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.854Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.848Z"
+            }
+          ]
+        },
+        {
+          "id": "early-refund",
+          "deliveries": 2,
+          "http_statuses": [
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 2,
+          "duplicate_ledger_entries": 0,
+          "invariant_violations": [
+            {
+              "reservation_id": "res-1001",
+              "code": "status_ledger_mismatch"
+            }
+          ],
+          "assertions": {
+            "final_status": false,
+            "charge_count": true,
+            "refund_count": true,
+            "invariants": false
+          },
+          "failed_assertions": 2,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.886Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-refund",
+              "event_type": "refund_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.881Z"
+            }
+          ]
+        },
+        {
+          "id": "failed-refund",
+          "deliveries": 2,
+          "http_statuses": [
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 1,
+          "duplicate_ledger_entries": 0,
+          "invariant_violations": [],
+          "assertions": {
+            "final_status": true,
+            "charge_count": true,
+            "refund_count": true,
+            "invariants": true,
+            "alert_context": false
+          },
+          "failed_assertions": 1,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-refund-failure",
+              "event_type": "refund_failed",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider reported refund failure",
+              "created_at": "2026-11-07T03:59:20.919Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.915Z"
+            }
+          ]
+        },
+        {
+          "id": "wrong-amount",
+          "deliveries": 1,
+          "http_statuses": [
+            200
+          ],
+          "outcomes": [
+            "applied"
+          ],
+          "ledger_entries": 1,
+          "duplicate_ledger_entries": 0,
+          "invariant_violations": [
+            {
+              "reservation_id": "res-1001",
+              "code": "incorrect_amount"
+            }
+          ],
+          "assertions": {
+            "final_status": false,
+            "charge_count": false,
+            "refund_count": true,
+            "invariants": false,
+            "alert_context": false
+          },
+          "failed_assertions": 4,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-wrong-amount",
+              "event_type": "payment_succeeded",
+              "amount_cents": 4500,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.946Z"
+            }
+          ]
+        },
+        {
+          "id": "event-id-conflict",
+          "deliveries": 2,
+          "http_statuses": [
+            200,
+            200
+          ],
+          "outcomes": [
+            "applied",
+            "applied"
+          ],
+          "ledger_entries": 2,
+          "duplicate_ledger_entries": 1,
+          "invariant_violations": [
+            {
+              "reservation_id": "res-1001",
+              "code": "repeated_event_in_ledger"
+            }
+          ],
+          "assertions": {
+            "final_status": false,
+            "charge_count": true,
+            "refund_count": false,
+            "invariants": false,
+            "alert_context": false
+          },
+          "failed_assertions": 4,
+          "incidents": [],
+          "delivery_trace": [
+            {
+              "id": 2,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "refund_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.976Z"
+            },
+            {
+              "id": 1,
+              "reservation_id": "res-1001",
+              "event_id": "evt-payment",
+              "event_type": "payment_succeeded",
+              "amount_cents": 9000,
+              "outcome": "applied",
+              "detail": "Provider event applied",
+              "created_at": "2026-11-07T03:59:20.972Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

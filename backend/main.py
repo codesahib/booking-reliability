@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, closing
 from pathlib import Path
 from typing import Literal
 from uuid import uuid4
@@ -35,7 +35,7 @@ def create_app(data_dir: Path | None = None):
 
     @app.get('/api/{mode}/dashboard')
     def dashboard(mode: Mode):
-        with connect(path(mode)) as con:
+        with closing(connect(path(mode))) as con:
             def rows(query):
                 return [dict(row) for row in con.execute(query)]
             return {
